@@ -6,7 +6,7 @@ namespace WebApi
     {
         public int StatusCode { get; set; }
         public List<string> Description { get; set; } = new();
-        public T Data { get; set; }
+        public T? Data { get; set; }
         public Response(HttpStatusCode statusCode,string message,T data)
         {
             StatusCode = (int)statusCode;

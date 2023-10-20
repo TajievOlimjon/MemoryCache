@@ -53,9 +53,8 @@ namespace WebApi
                 : new Response<string>(HttpStatusCode.OK, "Student data not deleted !");
         }
 
-        public async Task<PagedResponse<List<GetStudentDto>>> GetAllStudentsAsync(StudentFilter filter)
+        public async Task<List<GetStudentDto>> GetAllStudentsAsync(StudentFilter filter)
         {
-            filter = new StudentFilter(filter.PageNumber,filter.PageSize);
             var query = _dbContext.Students.OrderBy(x=>x.Id).AsQueryable();
 
             if (filter.FirstNameOrLastName != null)
@@ -78,12 +77,9 @@ namespace WebApi
                 Age = student.Age,
                 Email = student.Email,
                 PhoneNumber = student.PhoneNumber
-            }).Skip(filter.PageSize * (filter.PageNumber - 1))
-              .Take(filter.PageSize)
-              .ToListAsync();
+            }).ToListAsync();
 
-            return students.Count < 0 ? new PagedResponse<List<GetStudentDto>>(HttpStatusCode.NoContent, "No students yet", allTotalRecord, filter.PageNumber, filter.PageSize)
-                : new PagedResponse<List<GetStudentDto>>(students,HttpStatusCode.OK,"All students", allTotalRecord, filter.PageNumber, filter.PageSize);
+            return students;
         }
 
         public async Task<Response<GetStudentDto>> GetStudentByIdAsync(int studentId)

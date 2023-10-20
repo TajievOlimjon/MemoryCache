@@ -1,23 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using WebApi.Services.CacheServices;
 
-namespace WebApi.Controllers
+namespace WebApi
 {
     [Route("api/[controller]")]
     [ApiController]
     public class StudentsController : ControllerBase
     {
         private readonly IStudentService _studentService;
-
-        public StudentsController(IStudentService studentService)
+        private readonly ICacheService _cacheService;
+        public StudentsController(IStudentService studentService, ICacheService cacheService)
         {
             _studentService = studentService;
+            _cacheService = cacheService;
         }
 
         [HttpGet("GetAllStudents")]
         public async Task<IActionResult> GetAllStudents([FromQuery]StudentFilter filter)
         {
+            var studentsInCache = _cacheService.GetData<List<Student>>(DefaultStudentCacheKey.Students);
+            if (studentsInCache != null)
+            {
+                return StatusCode((int)HttpStatusCode.OK, studentsInCache);
+            }
             var students = await _studentService.GetAllStudentsAsync(filter);
-            return StatusCode(students.StatusCode,students);
+            if (students != null)
+            {
+                var expirationTime = DateTimeOffset.UtcNow.AddMinutes(2);
+                _cacheService.SetData(DefaultStudentCacheKey.Students, students, expirationTime);
+
+                return StatusCode((int)HttpStatusCode.OK, students);
+            }
+            return StatusCode((int)HttpStatusCode.NoContent, students);
         }
         [HttpGet("GetStudentById")]
         public async Task<IActionResult> GetStudentById([FromQuery]int studentId)
