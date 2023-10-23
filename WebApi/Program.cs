@@ -4,7 +4,7 @@ using WebApi.Services.CacheServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(configure =>
+builder.Services.AddDbContext<ApplicationDbContext>(configure =>
 {
     configure.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
